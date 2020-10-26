@@ -261,7 +261,7 @@ L.Map.include({
 	},
 
 	insertPage: function(nPos) {
-		if (this.getDocType() === 'presentation') {
+		if (this.isPresentationOrDrawing()) {
 			this._socket.sendMessage('uno .uno:InsertPage');
 		}
 		else if (this.getDocType() === 'spreadsheet') {
@@ -285,7 +285,7 @@ L.Map.include({
 		var docLayer = this._docLayer;
 
 		// At least for Impress, we should not fire this. It causes a circular reference.
-		if (this.getDocType() !== 'presentation') {
+		if (this.isPresentationOrDrawing()) {
 			this.fire('insertpage', {
 				selectedPart: docLayer._selectedPart,
 				parts:        docLayer._parts
@@ -304,14 +304,14 @@ L.Map.include({
 	},
 
 	duplicatePage: function() {
-		if (this.getDocType() !== 'presentation') {
+		if (!this.isPresentationOrDrawing()) {
 			return;
 		}
 		this._socket.sendMessage('uno .uno:DuplicatePage');
 		var docLayer = this._docLayer;
 
 		// At least for Impress, we should not fire this. It causes a circular reference.
-		if (this.getDocType() !== 'presentation') {
+		if (this.isPresentationOrDrawing()) {
 			this.fire('insertpage', {
 				selectedPart: docLayer._selectedPart,
 				parts:        docLayer._parts
@@ -323,7 +323,7 @@ L.Map.include({
 	},
 
 	deletePage: function (nPos) {
-		if (this.getDocType() === 'presentation') {
+		if (this.isPresentationOrDrawing()) {
 			this._socket.sendMessage('uno .uno:DeletePage');
 		}
 		else if (this.getDocType() === 'spreadsheet') {
@@ -351,7 +351,7 @@ L.Map.include({
 		}
 
 		// At least for Impress, we should not fire this. It causes a circular reference.
-		if (this.getDocType() !== 'presentation') {
+		if (this.isPresentationOrDrawing()) {
 			this.fire('deletepage', {
 				selectedPart: docLayer._selectedPart,
 				parts:        docLayer._parts
@@ -493,5 +493,9 @@ L.Map.include({
 			return null;
 
 		return this._docLayer._docType;
+	},
+
+	isPresentationOrDrawing: function () {
+		return this.getDocType() === 'presentation' || this.getDocType() === 'drawing';
 	}
 });
