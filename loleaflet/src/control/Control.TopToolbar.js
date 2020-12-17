@@ -26,9 +26,24 @@ L.Control.TopToolbar = L.Control.extend({
 		$(window).resize(function() {
 			if ($(window).width() !== map.getSize().x) {
 				var toolbar = w2ui['editbar'];
-				toolbar.resize();
+				if (toolbar)
+					toolbar.resize();
 			}
 		});
+	},
+
+	onRemove: function() {
+		$().w2destroy('editbar');
+		L.DomUtil.get('toolbar-up').remove();
+
+		this.map.off('doclayerinit', this.onDocLayerInit, this);
+		this.map.off('updatepermission', this.onUpdatePermission, this);
+		this.map.off('wopiprops', this.onWopiProps, this);
+		this.map.off('commandstatechanged', this.onCommandStateChanged, this);
+
+		if (!window.mode.isMobile()) {
+			this.map.off('updatetoolbarcommandvalues', this.updateCommandValues, this);
+		}
 	},
 
 	onFontSizeSelect: function(e) {
@@ -237,7 +252,13 @@ L.Control.TopToolbar = L.Control.extend({
 	},
 
 	create: function() {
-		var toolbar = $('#toolbar-up');
+		var toolbar = L.DomUtil.get('toolbar-up');
+		// In case it contains garbage
+		if (toolbar)
+			toolbar.remove();
+		$('#toolbar-logo').after(this.map.toolbarUpTemplate.cloneNode(true));
+		toolbar = $('#toolbar-up');
+
 		toolbar.w2toolbar({
 			name: 'editbar',
 			items: this.getToolItems(),

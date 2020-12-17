@@ -11,6 +11,8 @@ L.Control.UIManager = L.Control.extend({
 	onAdd: function (map) {
 		this.map = map;
 		this.notebookbar = null;
+		this.map.toolbarUpTemplate = $('#toolbar-up')[0].cloneNode(true);
+		this.map.mainMenuTemplate = $('#main-menu')[0].cloneNode(true);
 
 		map.on('updatepermission', this.onUpdatePermission, this);
 
@@ -133,6 +135,76 @@ L.Control.UIManager = L.Control.extend({
 			this.map.on('updatetoolbarcommandvalues', function() {
 				w2ui['editbar'].refresh();
 			});
+		}
+
+		this.map.on('changeuimode', this.onChangeUIMode, this);
+	},
+
+	onChangeUIMode: function(uiMode) {
+		if (uiMode.mode === window.userInterfaceMode)
+			return;
+
+		if (uiMode.mode !== 'classic' && uiMode.mode !== 'notebookbar')
+			return;
+
+		switch (window.userInterfaceMode) {
+		case 'classic':
+			this.map.removeControl(this.map.menubar);
+			this.map.menubar = null;
+			this.map.removeControl(this.map.topToolbar);
+			this.map.topToolbar = null;
+
+			window.userInterfaceMode = uiMode.mode;
+
+			if (this.map.getDocType() === 'spreadsheet') {
+				var notebookbar = L.control.notebookbarCalc();
+			} else if (this.map.getDocType() === 'presentation') {
+				notebookbar = L.control.notebookbarImpress();
+			} else {
+				notebookbar = L.control.notebookbarWriter();
+			}
+
+			this.notebookbar = notebookbar;
+			this.map.addControl(notebookbar);
+
+			notebookbar._showNotebookbar = true;
+			notebookbar.showTabs();
+			$('.main-nav').removeClass('readonly');
+
+			this.moveObjectVertically($('#spreadsheet-row-column-frame'), 36);
+			this.moveObjectVertically($('#document-container'), 36);
+			this.moveObjectVertically($('#presentation-controls-wrapper'), 43);
+			this.moveObjectVertically($('#sidebar-dock-wrapper'), 43);
+
+			this.map._docLayer._resetClientVisArea();
+			this.map._docLayer._requestNewTiles();
+
+			break;
+		case 'notebookbar':
+			if (this.notebookbar) {
+				this.map.removeControl(this.notebookbar);
+				this.notebookbar = null;
+			}
+
+			window.userInterfaceMode = uiMode.mode;
+
+			this.moveObjectVertically($('#spreadsheet-row-column-frame'), -36);
+			this.moveObjectVertically($('#document-container'), -36);
+			this.moveObjectVertically($('#presentation-controls-wrapper'), -43);
+			this.moveObjectVertically($('#sidebar-dock-wrapper'), -43);
+			$('#map').removeClass('notebookbar-opened');
+
+			this.map.menubar = L.control.menubar();
+			this.map.addControl(this.map.menubar);
+			this.map.topToolbar = L.control.topToolbar();
+			this.map.addControl(this.map.topToolbar);
+
+			this.map.menubar._onDocLayerInit();
+			this.map.topToolbar.onDocLayerInit();
+			this.map._docLayer._resetClientVisArea();
+			this.map._docLayer._requestNewTiles();
+
+			break;
 		}
 	},
 

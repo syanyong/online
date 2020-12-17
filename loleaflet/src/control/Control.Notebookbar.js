@@ -16,6 +16,13 @@ L.Control.Notebookbar = L.Control.extend({
 		this.map = map;
 		this._currentScrollPosition = 0;
 
+		var toolbar = L.DomUtil.get('toolbar-up');
+		// In case it contains garbage
+		if (toolbar)
+			toolbar.remove();
+		$('#toolbar-logo').after(this.map.toolbarUpTemplate.cloneNode(true));
+		toolbar = $('#toolbar-up');
+
 		this.loadTab(this.getHomeTab());
 
 		this.createScrollButtons();
@@ -52,6 +59,11 @@ L.Control.Notebookbar = L.Control.extend({
 		this.map.off('contextchange', this.onContextChange, this);
 		this.map.off('updatepermission', this.onUpdatePermission, this);
 		this.map.off('notebookbar');
+		$('.main-nav #document-header').remove();
+		$('.main-nav').removeClass('hasnotebookbar');
+		$('#toolbar-wrapper').removeClass('hasnotebookbar');
+		$('.main-nav').removeClass(this._map.getDocType() + '-color-indicator');
+		$('.main-nav #document-header').remove();
 		this.clearNotebookbar();
 	},
 
